@@ -1,1 +1,0 @@
-A linear time-invariant (LTI) system is a system that has a linear relationship between its input and output, and its response does not change over time
