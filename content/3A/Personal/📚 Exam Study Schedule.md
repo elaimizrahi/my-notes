@@ -53,14 +53,14 @@ draft: "true"
 	- [x] Assignment 6
 
 ## April 13 (Sun)
-- [ ] SE350: Full mock test
+- [x] SE350: Full mock test
 - [ ] CS341: Advanced topics
 	- [ ] NP Completeness
 - [ ] CS349: Assignments + review
 
 ## April 14 (Mon)
 #####  **SE350: EXAM - 4PM** 
-- [ ] CS349 Light review (post final)
+- [x] CS349 Light review (post final)
 
 ---
 
