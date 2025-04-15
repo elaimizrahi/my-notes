@@ -1,3 +1,7 @@
+---
+draft: "true"
+---
+
  # 📚 Exam Study Schedule
 
 **Start Date:** April 8 (Tuesday)  
