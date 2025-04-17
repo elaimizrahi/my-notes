@@ -74,6 +74,7 @@ $$
 $$
 \frac{\partial M}{\partial y} = \frac{\partial N}{\partial t}
 $$
+- This means that we can take the partial derivative from both sides and if equal, we can find the ODE
 - If exact, there is a potential function \(F(t, y)\) such that:
 $$
 \frac{\partial F}{\partial t} = M,\ \frac{\partial F}{\partial y} = N
