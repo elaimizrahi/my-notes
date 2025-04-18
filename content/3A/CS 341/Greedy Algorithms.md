@@ -6,6 +6,8 @@ These usually present themselves as **Optimization** problems - we want to maxim
 3. Only one feasible solution is constructed
 4. Correctness proofs can be tricky and complicated - but can prove that they always yield an optimal solution
 
+**Constraints**: Greedy problems will usually provide a set of constraints (good for seeing that we should use greedy!) - These can usually help guide us in making our choices at each step
+
 **Feasible Solution**: For any problem instance $I$, `feasible(i)` is the set of all outputs for $I$ that satisfy the given constraints
 
 **Choice Set**: For a partial solution $X = [x_1, ..., x_i]$ where $i < n$, we define the choice set
@@ -86,5 +88,38 @@ for i = 1 to n:
 
 **Final Weight** is $\sum{x_i} = W$ if $\sum{w_i} \geq W$
 **Runtime**: $O(nlogn)$ to sort, $O(n)$ to choose weights for each item
+
+
+### Minimizing Lateness
+**Instance**: Jobs $J_1, ... J_n$ with processing times $t(1), ... t(n)$ and deadlines $d(1),...d(n)$
+- Note: we can only run one job at a time (similar to [[Uniprocessor Scheduling]] in [[SE 350]])
+**Find**: A scheduling of the jobs which **minimizes maximal lateness**
+ - lateness $l(i) = f(i) - d(i)$, otherwise 0
+ - maximal lateness $max_i l(i)$
+
+**Possible Solutions**:
+1. Shortest jobs first - doesn't work 
+2. do jobs with little slack ($d(i) - t(i)$ first - also doesn't work
+3. Do jobs in non-decreasing deadline order (Shortest Remaining time!) **Solution!**
+
+**Observe**: if $d(i) = d(j)$ the orderings $[...,i,j,...] and [...,j,i,...]$ have the same max-lateness 
+
+**Correctness**: Exchange argument
+- let $L = [e_1, ... e_n]$ be **any** permuation of $[1, ... n]$
+- suppose L is in non-decreasing order of deadlines
+	- We want $max\_lateness(L) \geq max\_lateness(L_{greedy})$
+- Then there exists $i$ such that $d(e_i) > d(e_{i+1})$ 
+- now swap $e_i$ and $e_{i+1}$ to get a permutation $L'$, then $max\_lateness(L') \leq max\_lateness(L)$
+	- We know this by our observation before
+- Keep going, and after at most $n(n-1)/2$ iterations, we have $L_{ordered}$ which must have $max\_lateness(L_{ordered}) = max\_lateness(L_{greedy})$
+Thus we know that this is a correct solution!
+
+Greedy algorithms are tricky to identify, as many other problems **seem** like they could be solved greedily. We want to look for problems that require **Optimization**, have **Constraints**, and usually have linear instances (not always). It helps to think about all the **possible** solutions, then decide which one is the most feasible. 
+
+These problems are usually well-defined and, if you see a new one, it should be similar to existing greedy problems. This includes **Knapsacks**, **Interval times**, and **Create Groups**
+
+Remember - we have two main ways of proving correctness! Stick to the formula and greedy algorithms become easy :)
+
+
 
 
