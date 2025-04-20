@@ -12,7 +12,9 @@
 
 **NP Complete**: A decision problem $A$ is NP-Complete if
 1. Show that $A \epsilon NP$ (A is in NP) 
-2. A is the "hardest problem in NP" (for all $B \epsilon NP$, there is a polytime reduction from $B \implies A$) (that is there is a polynomial time reduction from an NP-complete problem to A)
+2. A is the "hardest problem in NP" (for all $B \epsilon NP$, there is a polytime reduction from $B \implies A$) (that is there is a polynomial time reduction from an NP-complete problem to A) We denote this as $A \leq_{p} B$ if A is reducible to B
+
+
 
 **Commonly known problems**:
 - [Vertex Cover (VS)](https://en.wikipedia.org/wiki/Vertex_cover#:~:text=In%20graph%20theory%2C%20a%20vertex,every%20edge%20of%20the%20graph.)
