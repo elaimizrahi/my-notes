@@ -20,3 +20,18 @@
 - [Vertex Cover (VS)](https://en.wikipedia.org/wiki/Vertex_cover#:~:text=In%20graph%20theory%2C%20a%20vertex,every%20edge%20of%20the%20graph.)
 - [3-SAT](https://en.wikipedia.org/wiki/Boolean_satisfiability_problem#3-satisfiability)
 - [Independent Set (IS)](https://en.wikipedia.org/wiki/Independent_set_(graph_theory)#:~:text=In%20graph%20theory%2C%20an%20independent,no%20edge%20connecting%20the%20two.)
+
+---
+
+### Relationships Between Problems
+
+- **Clique** $\leftrightarrow$ **Independent Set**: Take the complement of all edges.
+- **Vertex Cover** $\leftrightarrow$ **Independent Set**: Take $V \setminus S$ (complement of the independent set).
+- **Hamiltonian Path $\rightarrow$ Hamiltonian Cycle**: Add a new vertex and connect it to everything.
+- **Hamiltonian Cycle $\rightarrow$ Hamiltonian Path**: Duplicate a vertex $x$ into $x'$, and create new vertices $t$ and $t'$ to connect to $x$ and $x'$.
+- **3-SAT $\rightarrow$ Independent Set**: Create triangles for each clause and connect opposing literals; require an independent set of size $k$ (number of clauses).
+- **3-SAT $\rightarrow$ Vertex Cover**: Create triangles for each clause and connect opposing literals; require a vertex cover of size $n + 2k$ (where $n$ = variables, $k$ = clauses).
+- **Travelling Salesman $\rightarrow$ Hamiltonian Cycle**: Set all weights to 1.
+- **3-SAT $\rightarrow$ Hamiltonian Cycle**: Build layers of gadgets where each variable must travel either the true direction or the false direction (not both).
+
+---
