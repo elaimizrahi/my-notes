@@ -1,0 +1,8 @@
+- [x] SE 380 A4
+- [ ] SE 464 Lab
+- [ ] CS 343 A3
+- [ ] ECE 358 Midterm
+- [ ] SE 380 Midterm
+- [ ] CS 343 Midterm
+- [ ] Uber OA
+- [ ] OpenAI OA

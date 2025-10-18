@@ -1,0 +1,17 @@
+- [x] Schedule DB behavioural
+	- [x] DB behavioural
+- [x] Stripe Apply
+- [x] [https://lnkd.in/gPc8rhG2](https://lnkd.in/gPc8rhG2) Mongo open house
+- [x] HubSpot Apply
+	- [ ] Hubspot Interview
+- [x] AOJ form
+- [x] Risk form
+- [ ] Visa
+	- [x] Cultural Vistas Application
+	- [ ] Get Approved
+	- [ ] Anvil app
+	- [ ] LEARN Class
+- [x] Cancel leetcode premium
+	- [ ] Cancel linkedin premium?
+- [ ] Book Flight
+- [ ] 
