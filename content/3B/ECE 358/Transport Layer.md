@@ -148,3 +148,114 @@ So the utilization is $U = min(1, W\frac{t_I}{t_T})$
 Ideal size for 100% allocation: $W_{upper-bound} = \frac{t_T}{t_I}$
 
 
+## Transmission Control Protocol (TCP)
+Features of TCP:
+- point-to-point (one sender + one receiver)
+- reliable in-order **byte** stream
+- cumulative ACK's
+- pipelining - TCP congestion + flow control set window size
+- full duplex data (bi-directional and max segment size)
+- connection-oriented (uses handshaking)
+- flow controlled - sender will not overwhelm receiver
+
+![[Pasted image 20251018160853.png]]
+
+Sequence numbers come as a byte stream "number" 
+Acknowledgements (ACKs) holds the sequence number of the next byte it expects (cumulative ACK)
+
+**Note:** TCP doesn't specify how to handle out-of-order segments, this is up to the implementor if they want to discard or buffer
+- usually buffer is used
+
+![[Pasted image 20251018161257.png]]
+
+**ACK Generation:**
+
+| Event at receiver                                                     | TCP receiver action                                                        |
+| --------------------------------------------------------------------- | -------------------------------------------------------------------------- |
+| in-order arrival with expected seq #, all data up to # ACKed          | Delayed ACK, waits up to 500ms for next segment, if not received sends ACK |
+| in-order arrival with expected seq #, another segment has ACK pending | immediately send single cumulative ACK (ack both in-order segments)        |
+| out-of-order arrival, higher seq # than expected (Gap)                | immediately send duplicate ACK indicating seq # of next expected byte      |
+| arrival of segment that partially or fully fills gap                  | immediately send ACK provided that segment is at lower end of gap          |
+**TCP fast retransmit** - if sender gets 3 additional ACKs for same data (4 total), resend unACKed segment with smallest seq #
+
+**Flow Control**
+Q: How do we handle it if the network layer delivers faster than application layer removes from socket buffers?
+
+A: *The receiver controls the sender*
+
+- The receiver advertises free buffer space in the `rwnd` field in the TCP header
+	- `RcvBuffer` sets size via socket options (default 4096 bytes)
+	- many OS's autoadjust to RcvBuffer
+- Sender limits amount of unACKed (in-flight) data to received `rwnd` 
+- guarantees will not overflow
+
+**Connection Establishment**
+Connection establishment hinges on these fields:
+- Connection Request **(SYN)**
+- Initial Sequence Number **(ISN)**
+- Acknowledgement **(ACK)**
+- Receive window size
+![[Pasted image 20251018163505.png]]
+
+1. SYN segment from client to server
+	- SYN = 1
+	- A random ISN
+	- RWND is undefined
+	- some options
+2. SYN + ACK segment from server to client
+	- SYN = 1
+	- A random ISN for client
+	- ACK = 1
+	- ack seq number is the sequence # of the first data byte to be received
+	- RWND - receive window size
+3. ACK from client to server
+	- ACKs the second SYN segment
+	- RWND - receive window size for server
+
+To close, server and client each close their side, send TCP segment with FIN bit = 1
+
+## Congestion Control
+How we control the case where too many sources are sending too much data too fast for the network to handle.
+- creates long delays, packet loss, and is **different from flow control**
+
+**End-End congestion control**
+- no explicit feedback from the network
+- congestion gets inferred from observed loss + delay
+
+**Network-assisted congestion control 
+- routers provide direct feedback to sending/receiving hosts with flows passing through congested routers 
+- may tell server/client the congestion levels, might just give a sending rate to follow
+- TCP ECN, ATM, DECbit protocols
+
+## TCP Congestions Control (AIMD)
+*Approach*: senders can increase sending rate until packet loss (congestion) occurs. Then a decreasing rate is sent on a loss event
+
+**Additive Increase:** increase sending rate by 1 maximum segment size every RTT until loss detected (when all segments in previous were ACKed)
+**Multiplicative Decrease**: cut sending rate in half at each loss event (triple duplicate ACK), cut to 1 maximum segment size when loss from timeout
+
+**Behaviour**: roughly send `cwnd` bytes, wait RTT for ACKS, then send more bytes
+$$ TCP\ rate = \frac{cwnd}{RTT} bytes/sec$$
+$$ LastByteSent - LastByteACKed \leq min(cwnd, rwnd)$$
+`cwnd` is dynamically adjusted in response to observed congestion
+
+By using the AIMD algorithm, the connection starts at a slow rate then ramps up exponentially fast
+
+**Congestion avoidance**
+- when `cwnd` gets to 1/2 of its value before timeout, we should switch the exponential increase to linear
+	- Uses a variable `ssthresh` which is set to 1/2 of `cwnd` just before loss event
+
+**Note:** there is TCP RENO which follows this, but TCP Tahoe always sets cwnd to 1 (doesn't cut in half on 3 duplicate ACKs)
+
+**TCP Throughput**
+When calculating this we ignore the slow start, assume there is always data to send
+
+$$ avg.\ throughput = \frac{3}{4}W\ per\ RTT$$
+**TCP CUBIC**
+We can increase the amount of time being sent in usable bandwidth 
+
+If $W_{max}$ is the sending rate where loss was detected:
+- cut the rate/window in half on loss, ramp up to $W_{max}$ faster, but then approach it slower
+How?
+- Set $K$ as the point in time when the window size will reach $W_{max}$ (tuneable)
+- Increase W as a function of the **cube** of the distance between current time and $K$ (larger increase when farther from K)
+**Note:** TCP cubic is the most popular for web servers, and is used in linux
