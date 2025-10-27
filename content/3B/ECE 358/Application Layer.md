@@ -144,6 +144,7 @@ DNS is a distributed hierarchal database
 - If a client wants an IP (ie. www.amazon.com), starts with root DNS servers to find .com server
 - Then finds the amazon.com DNS server
 - Then queries the amazon DNS server to get IP addresses that it could server out 
+
 ![[Pasted image 20251017215108.png]]
 
  **Root DNS Servers:**
@@ -161,11 +162,13 @@ e.g. host at ece.uwaterloo.ca wants IP for gaia.cs.umass.edu
 ##### Iterated query
 - contacted server replies with name of server to contact
 - forwards to another server 
+
 ![[Pasted image 20251017215702.png | 300]]
 
 ##### Recursive query
 - Puts burden of name resolution on contacted server
-- heavy load at upper levels of heirarchy
+- heavy load at upper levels of hierarchy
+
 ![[Pasted image 20251017215816.png | 300]]
 
 #### Caching DNS Information
@@ -176,18 +179,23 @@ Once any name server learns a mapping, it caches the mapping and immediately ret
 
 #### DNS Records
 DNS being a distributed database must store records. It does this with resource records (RR) in the form: `(name, value, type, ttl)`
+
 **Type = A**
 - `name` is hostname + `value` is IP address `(relay1.bar.foo.com,145.37.93.126,A)`
+
 **Type = NS**
 - `name` is domain + `value` is hostname of name server for this domain (forwarded)
 - `(foo.com, dns.foo.com, NS)`
+
 **Type = CNAME**
 - `name` is alias for some real name (`www.ibm.com is really servereast.backup2.ibm.com`)
 - `value` is canonical name (a type A DNS record)
+
 **Type = MX**
 - `name ` is like normal
 - `value` is the name of the SMTP mail server associated with `name`
 - `(foo.com, mail.bar.foo.com, MX)`
+
 
 #### DNS Protocol Messages
 DNS *query* and *reply* messages both have the same format
