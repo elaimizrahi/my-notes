@@ -10,3 +10,4 @@ I'm attending Software Engineering at the University of Waterloo, so my course n
 
 Browse by term:
 - [[3A Software Engineering]]
+- [[3B Software Engineering]]
