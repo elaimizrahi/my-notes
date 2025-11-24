@@ -98,3 +98,15 @@ We want horizontal scaling of writes and capacity
 - Sharding is usually not supported in relational databases, so it must be hacked at the application
 ![[Pasted image 20250922110332.png]]
 ![[Pasted image 20250922110345.png]]
+
+
+### Normalized Data
+A normalized relation database has no duplication of data. References (foreign keys) point to shared data
+- To optimally partition the rows into shards, we could solve a balanced graph partitioning problem
+
+![[Pasted image 20251124144353.png | 300]]
+
+- Nodes represent database rows
+- Edges represent references (FKs)
+
+**We want to assign the rows to shards (partition) so that total edges between partitions are minimized and nodes per partition is balanced**
