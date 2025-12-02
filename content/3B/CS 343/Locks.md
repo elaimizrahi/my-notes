@@ -20,7 +20,7 @@ Instead of looping until critical section is unlocked or an event happens, we ca
 ```c
 while(TestSet( Lock ) == CLOSED) uThisTask().yeild(); // relinquish time slice
 ```
-**Adaptive Spin-Locks** allow this number to be addaptable, so we can check any number of times
+**Adaptive Spin-Locks** allow this number to be adaptable, so we can check any number of times
 > Most spin locks break the starvation rule, it is possible for 1+ tasks
 
 #### 6.2.1 Implementation
@@ -308,4 +308,191 @@ int main() {
     cout << acc.total() << endl;
 }
 
+```
+
+##### 6.3.3.1 Fetch Increment Barrier
+- spinning, T == G flag ensures waiting threads exit barrier even if fast threads change count
+```c
+struct Barrier { 
+	size_t group = 0; 
+	volatile bool flag = false; 
+	volatile size_t count = 0; 
+}; 
+void block( Barrier & b ) { 
+	size_t negflag = ! b.flag; 
+	if ( FetchInc( b.count, 1 ) < b.group - 1 ) { 
+		await( b.flag == negflag ); // spin 
+		} else { // SAFE ACTION BEFORE TRIGGERING BARRIER 
+		b.count = 0; b.flag = negflag; } 
+	}
+```
+
+
+##### 6.3.3.2 uBarrier
+- uC++ barrier is a blocking, T > G, barging, prevention coroutine, where the coroutine main can be resumed by the last task arriving at the barrier
+- Member `last` is called by the last task, then all blocked tasks are released
+- `uBarrier` has implicit mutual exclusion $\implies$ no barging $\implies$ only manages synchronization
+- Why not have the task delete itself after unblocking?
+	- Coroutine barrier can be used many times
+- Note: Barrier can't be used within a `COFOR` block
+
+##### 6.3.4 Binary Semaphore
+- Binary Semaphore is the blocking equivalent to a yielding spin-lock
+- Provides synchronization and mutual exclusion
+```c
+Semaphore lock(0); // 0 => closed, 1 => open, default 1
+```
+- More powerful than synchronization lock as it **remembers the state of an event**
+- Names for acquire and release are from the dutch terms 
+	- acquire is `lock.P()`
+	- release is `lock.V()`
+- When a semaphore has only two states - it's called a binary semaphore
+
+![[Pasted image 20251202151321.png | 400]]
+- same as single-acquisition `mutexLock`
+
+##### 6.3.5 Counting Semaphore
+- Augment the definition of P and V to allow a multi-valued semaphore
+- This allows critical sections to allow N simultaneous tasks
+```c
+int main() { 
+	CntSem lk( 3 ); // allow 3 
+	T t0( lk ), t1( lk ), . . .; 
+}
+```
+- In general, used in two different ways:
+	- For synchronization, if the semaphore starts at 0 then it's waiting for an event to occur
+	- For mutual exclusion, if the semaphore starts at 1(N) then it controls a critical section
+
+In uC++ we have the `uSemaphore` class:
+```c
+#include <uSemaphore.h>
+class uSemaphore { 
+	public: 
+	uSemaphore( unsigned int count = 1 ); 
+	void P(); 
+	bool TryP(); 
+	void V( unsigned int times = 1 ); 
+	int counter() const; 
+	bool empty() const; 
+};
+```
+
+- P decrements the semaphore counter - if the counter is >= 0, then the task continues, else it blocks
+- V wakes up the task blocked for the longest time if there are tasks blocked on the semaphore and increments the semaphore counter
+
+### 6.4 Lock Programming
+#### 6.4.1 Precedence Graph
+- Binary P and V in with COBEGIN are as powerful as START and WAIT
+- e.g. execute statements so the result is the same as serial execution but concurrency is maximized:
+```c
+S1: a = 1
+S2: b = 2
+S3: c = a + b 
+S4: d = c * a
+S5: e = c + d
+```
+- We can see that statements like S1 and S2 are independent from each other, but statements like S5 rely on the others being completed
+
+Show this w/ a precedence graph:
+![[Pasted image 20251202152358.png]]
+- P waits on the lock, V acquires the lock
+- Note: this is not the optimal solution
+
+#### 6.4.2 Buffering
+- tasks communicate unidirectionally through a queue 
+- Producer adds items to the back of a queue
+- Consumer removes items from the front of a queue
+
+##### 6.4.2.1 Unbounded Buffer
+- Two tasks communicate through a queue of unbounded length
+- Because the tasks work at different speeds, the producer may get ahead of the consumer
+	- Producer never has to wait as buffer infinite length
+	- Consumer only has to wait if the buffer is empty
+
+```c
+#define QueueSize ∞ 
+int front = 0, back = 0; 
+int Elements[QueueSize]; 
+uSemaphore full(0); 
+void Producer::main() { 
+	for (;;) { 
+		// produce an item 
+		// add to back of queue 
+		full.V(); 
+	} 
+	// produce a stopping value 
+	full.V(); 
+} 
+void Consumer::main() { 
+	for (;;) { 
+		full.P(); 
+		// take an item from the front of the queue 
+		if ( stopping value? ) break; 
+		// process or consume the item 
+	} 
+}
+```
+- the `full` semaphore  is used for synchronization NOT mutual exclusion - it prevents the consumer from reading when the queue is empty
+
+##### 6.4.2.2 Bounded Buffer 
+- Two tasks communicate through a queue of bounded length
+- Because of Bounded length
+	- Producer has to wait if buffer is full and must wait for consumer to remove
+	- Consumer has to wait if buffer is empty and must wait for producer to add
+- Use Counting semaphores to account for the finite length of the shared queue
+
+```c
+uSemaphore full(0), empty(QueueSize);
+void Producer::main() {
+    for ( ;; ) {
+        // produce an item
+        empty.P();                  // wait for empty slot
+        // add element to buffer
+        full.V();                   // signal full slot
+    }
+    // produce a stopping value
+    full.V();
+}
+void Consumer::main() {
+    for ( ;; ) {
+        full.P();                   // wait for full slot
+        // remove element from buffer
+        if ( stopping value ? ) break;
+        // process or consume the item
+        empty.V();                  // signal empty slot
+    }
+}
+
+```
+- This produces **maximum concurrency** and can handle multiple producers and consumers
+
+#### 6.4.3 Lock Techniques
+- Many possible solutions
+- A split binary semaphore is a collection of semaphores where at most one of the collection has the value 1
+	- i.e the sum of the semaphores is always less than or equal to one
+	- Used when different kinds of tasks have to block separately
+	- Cannot differentate tasks blocked on the same semaphore lock
+- Split binary semaphores can be used to solve complicated mutual exclusion problems by a technique called **baton-passing**
+- The rules of baton-passing are:
+	- There is exactly one (conceptual) baton
+	- Nobody moves in the entry/exit code unless they have it 
+	- once the baton is released, cannot read/write variables in entry exit
+- Can mutex/condition lock perform baton passing to prevent barging?
+	- not if signalled task must implicitly re-acquire the mutex lock before continuing 
+	- Signaller must release the mutex lock
+	- There is now a race between signalled and calling tasks, resulting in barging
+
+
+#### 6.4.4 Readers-Writers Problem
+- Multiple tasks sharing a resource: some reading the resource and some writing the resource
+- Allow multiple concurrent reader tasks simultaneous access, but serialize access for writer tasks (also a writer can read)
+- Use split-binary semaphore to segregate 3 kinds of tasks: arrivers, readers, writers
+- Use baton-passing to help understand complexity
+
+![[Pasted image 20251202160830.png | 400]]
+
+There are 7 Solutions to the readers-writers problem - each one has its drawbacks:
+```
+TODO: fill this out
 ```
