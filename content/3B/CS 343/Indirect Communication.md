@@ -8,7 +8,7 @@
 - Declare which variables are to be shared, as in `VAR v : Shared integer MutexLock v_lock`
 
 ### 8.3 Monitor 
-- A monitor is an abstract data type that combines shared dxata with serialization of its modification 
+- A monitor is an abstract data type that combines shared data with serialization of its modification 
 ```c
 _Monitor name{
 	shared data

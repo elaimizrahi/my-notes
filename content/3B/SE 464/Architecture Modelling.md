@@ -28,7 +28,7 @@ SPM's allow us to:
 
 
 ## Software Execution Models
-SEM's are constructed early in the dev process to ensure that the chosen software architecture can achieve the required performance objectives. They provide static analysis of the mean, best, and worst-case response time. They are generally sufficient for finding serious performance problems early.
+SEM's are constructed early in the dev  process to ensure that the chosen software architecture can achieve the required performance objectives. They provide static analysis of the mean, best, and worst-case response time. They are generally sufficient for finding serious performance problems early.
 
 ### Execution Graphs
 - Represent the execution (sequence of operations) on the system. An execution graph is constructed for each scenario

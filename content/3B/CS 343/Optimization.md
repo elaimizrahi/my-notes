@@ -86,3 +86,62 @@
 	- e.g. **Double-check locking** for concurrent singleton pattern
 
 #### 10.3.2 Eliding
+- For high-level language, compiler decides when/which variables are loaded into registers and for how long
+- Elide reads (loads) by copying (replicating) value into a register
+```c
+		Task1.                     Task2
+		 ...                       register = flag 
+		flag = false (write)       while(register)
+```
+- Hence, variable logically disappears for duration in register
+	- So task spins forever in busy loop if R before W
+- Also, elide meaningless sequential code
+	- sleep(1) is unnecessary in a sequential program
+
+#### 10.3.3 Replication
+- Why is there a benefit to reorder R/W?
+- Modern processors increase performance by executing multiple instruction in parallel on **replicated hardware**
+	- internal pool of instructions take from program order
+	- begin simultaneous execution of instruction pool as inputs
+	- collect results from finished instructions
+	- instructions with independent inputs execute out-of-order
+- From sequential perspective, disjoint reordering is unimportant
+- For concurrency, it's very important
+
+### 10.4 Memory Model
+- Manufacturers define set of optimizations performed implicitly by processor 
+- Set of optimizations indirectly define a memory model:
+
+![[Pasted image 20251203190621.png]]
+
+- AT has events occur instantaneously ⇒ slow or impossible (distributed). 
+- SC accepts all events cannot occur instantaneously ⇒ may read old values 
+- SC still strong enough for software mutual-exclusion (Dekker 5.18.6 / Peterson 5.18.7). 
+- SC often considered minimum model for concurrency. 
+- No hardware supports just AT/SC. 
+- TSO (x86/SPARC), PSO, WO (ARM, Alpha), RC (PowerPC) + atomic R/W synchronizations
+
+### 10.5 Preventing Optimization Problems
+- All optimization problems result from races on shared variables
+- If shared data is protected by locks (implicit or explicit)
+	- Locks define the sequential concurrent boundaries
+	- Boundaries must preclude optimizations that affect concurrency
+- Called race free as synchronization and mutual exclusion preclude races
+- But, race free does have races. 
+- Races are internal to locks, which lock programmer must deal with
+- Two approaches:
+	- ad hoc: programmer manually augments all data races with pragmas to restrict optimizations 
+	- Formal: Language has memory model and mechanisms to abstractly define races in program: portable but oftern suboptimal
+- Data access/compiler: `volatile qualifier`
+	- Force variable loads and stores to/from registers (at sequence points)
+	- created for longjmp or force access for memory-mapped devices
+	- for architectures with few registers, practically all variables are implicitly volatile
+	- Java Volatile and C++ atomic are stronger
+- Program order/compiler (static): disable inlining, `asm("...")`
+- memory order / runtime (dynamic): sfence, lfence, mfence (x86)
+- Locks built to ensure sequential consistency for protected shared variables
+	- **no user races and strong locks means that we have a sequentially consistent memory model**
+
+
+
+
